@@ -13,10 +13,8 @@ responses = []
 @app.get("/")
 def home_page():
     """Display home page"""
-    title = survey.title
-    instructions = survey.instructions
 
-    return render_template("survey_start.html", title = title, instructions = instructions)
+    return render_template("survey_start.html", survey)
 
 @app.post("/begin")
 def redirect_to_questions():
@@ -25,9 +23,18 @@ def redirect_to_questions():
 
 @app.get("/questions/<int:index>")
 def shows_questions(index):
-    """Display questions page"""
-    question = survey.questions[index]
-    return render_template("question.html", question = question)
+    """Display questions page with radio form for question choices; redirects to
+    current unanswered questions if user attempts to manually navigate away, or
+    thank-you page if user finishes the survey"""
+    # question = survey.questions[index]
+    # if index not = length of responses redirect to /questions/(respo length)
+    if not index == len(responses):
+        return redirect(f"/questions/{len(responses)}")
+    elif len(responses) == len(survey.questions):
+        return render_template("completion.html")
+    else:
+        question = survey.questions[index]
+        return render_template("question.html", question = question)
 
 @app.post("/answer")
 def submit_answer():
@@ -36,8 +43,5 @@ def submit_answer():
     answer = request.form.get("value")
     responses.append(answer)
 
-    if len(responses) == len(survey.questions):
-        return render_template("completion.html")
-    else:
-        return redirect(f"/questions/{len(responses)}")
+    return redirect(f"/questions/{len(responses)}")
 
