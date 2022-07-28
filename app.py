@@ -14,7 +14,7 @@ responses = []
 def home_page():
     """Display home page"""
 
-    return render_template("survey_start.html", survey)
+    return render_template("survey_start.html", survey = survey)
 
 @app.post("/begin")
 def redirect_to_questions():
@@ -26,9 +26,9 @@ def shows_questions(index):
     """Display questions page with radio form for question choices; redirects to
     current unanswered questions if user attempts to manually navigate away, or
     thank-you page if user finishes the survey"""
-    # question = survey.questions[index]
-    # if index not = length of responses redirect to /questions/(respo length)
+
     if not index == len(responses):
+        flash("Accessing an invalid question! Please answer current inquiry.")
         return redirect(f"/questions/{len(responses)}")
     elif len(responses) == len(survey.questions):
         return render_template("completion.html")
