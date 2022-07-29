@@ -8,11 +8,11 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 debug = DebugToolbarExtension(app)
 
-responses = []
-
 @app.get("/")
 def home_page():
-    """Display home page"""
+    """Display home page. Set "responses" in session as an empty list"""
+
+    session["responses"] = []
 
     return render_template("survey_start.html", survey = survey)
 
@@ -27,21 +27,30 @@ def shows_questions(index):
     current unanswered questions if user attempts to manually navigate away, or
     thank-you page if user finishes the survey"""
 
-    if not index == len(responses):
+    if not index == len(session["responses"]):
         flash("Accessing an invalid question! Please answer current inquiry.")
-        return redirect(f"/questions/{len(responses)}")
-    elif len(responses) == len(survey.questions):
-        return render_template("completion.html")
+        return redirect(f"/questions/{len(session['responses'])}")
+    elif len(session["responses"]) == len(survey.questions):
+        return redirect("/surveycomplete")
     else:
         question = survey.questions[index]
         return render_template("question.html", question = question)
 
 @app.post("/answer")
 def submit_answer():
-    """Take answer from form and redirect to questions
-        if questions finished, show thank-you page"""
+    """Take answer from form and add info to response session. redirect to
+        next question. If questions finished, show thank-you page"""
     answer = request.form.get("value")
-    responses.append(answer)
 
-    return redirect(f"/questions/{len(responses)}")
+    responses = session["responses"]
+    responses.append(answer)
+    session["responses"] = responses
+
+    return redirect(f"/questions/{len(session['responses'])}")
+
+@app.get("/surveycomplete")
+def end_of_survey():
+    "Shows thank-you page upon survey completion"
+
+    return render_template("completion.html")
 
